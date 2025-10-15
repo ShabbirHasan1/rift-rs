@@ -390,7 +390,8 @@ unsafe extern "C" fn handle_mach_request_c(
 
     debug!("Received message: {}", message_str);
 
-    let client_port = unsafe { (*original_msg).msgh_remote_port };
+    // Use the sender-provided reply port as the client's event port
+    let client_port = unsafe { (*original_msg).msgh_local_port };
 
     let request: RiftRequest = match serde_json::from_str(message_str) {
         Ok(req) => req,

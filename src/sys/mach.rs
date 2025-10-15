@@ -101,7 +101,7 @@ pub struct mach_msg_header_t {
     msgh_bits: mach_msg_bits_t,
     msgh_size: mach_msg_size_t,
     pub msgh_remote_port: mach_port_t,
-    msgh_local_port: mach_port_t,
+    pub msgh_local_port: mach_port_t,
     msgh_voucher_port: mach_port_name_t,
     msgh_id: mach_msg_id_t,
 }
@@ -503,12 +503,13 @@ pub unsafe fn send_mach_reply(
 
     let original = &*original_msg;
 
+    // Prefer sender-provided reply port (local) so clients can stream on it
     let reply_port: mach_port_t;
 
-    if original.msgh_remote_port != 0 {
-        reply_port = original.msgh_remote_port;
-    } else if original.msgh_local_port != 0 {
+    if original.msgh_local_port != 0 {
         reply_port = original.msgh_local_port;
+    } else if original.msgh_remote_port != 0 {
+        reply_port = original.msgh_remote_port;
     } else {
         return false;
     }
